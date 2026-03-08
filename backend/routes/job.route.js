@@ -1,19 +1,19 @@
 import express from "express";
 import isAuthenticated from "../middlewares/isAuthenticated.js";
-import { getAdminJobs, getAllJobs, getJobById, postJob } from "../controllers/job.controller.js";
+import { postJob, getAllJobs, getJobById, getAdminJobs } from "../controllers/job.controller.js";
 
 const router = express.Router();
 
-// recruiter posts job
-router.route("/post").post(isAuthenticated, postJob);
+// Recruiter posts a job
+router.post("/post", isAuthenticated, postJob);
 
-// public route (no login required)
-router.route("/get").get(getAllJobs);
+// Students fetch all jobs
+router.get("/get", getAllJobs);
 
-// recruiter dashboard jobs
-router.route("/getadminjobs").get(isAuthenticated, getAdminJobs);
+// Recruiter dashboard jobs
+router.get("/getadminjobs", isAuthenticated, getAdminJobs);
 
-// job details
-router.route("/get/:id").get(getJobById);
+// Get single job details
+router.get("/get/:id", getJobById);
 
 export default router;

@@ -41,14 +41,11 @@ const CompanySetup = () => {
         formData.append("website", input.website);
         formData.append("location", input.location);
         if (input.file) {
-            formData.append("file", input.file);
+            formData.append("logo", input.file);
         }
         try {
             setLoading(true);
             const res = await axios.put(`${COMPANY_API_END_POINT}/update/${params.id}`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                },
                 withCredentials: true
             });
             if (res.data.success) {
@@ -64,14 +61,15 @@ const CompanySetup = () => {
     }
 
     useEffect(() => {
+        if (!singleCompany) return;
         setInput({
             name: singleCompany.name || "",
             description: singleCompany.description || "",
             website: singleCompany.website || "",
             location: singleCompany.location || "",
-            file: singleCompany.file || null
-        })
-    },[singleCompany]);
+            file: null
+        });
+    }, [singleCompany]);
 
     return (
         <div>

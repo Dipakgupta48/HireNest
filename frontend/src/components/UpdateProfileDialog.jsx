@@ -8,11 +8,17 @@ import {
 import { Label } from './ui/label'
 import { Input } from './ui/input'
 import { Button } from './ui/button'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import axios from 'axios'
+import { USER_API_END_POINT } from '@/utils/constant'
+import { setUser } from '@/redux/authSlice'
+import { toast } from 'sonner'
 
 const UpdateProfileDialog = ({ open, setOpen }) => {
 
     const { user } = useSelector(store => store.auth)
+    const dispatch = useDispatch();
+    const [loading, setLoading] = useState(false);
 
     const [input, setInput] = useState({
         fullname: user?.fullname || "",
@@ -31,10 +37,39 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
         setInput({ ...input, file: e.target.files?.[0] })
     }
 
-    const submitHandler = (e) => {
+    const submitHandler = async (e) => {
         e.preventDefault()
-        console.log(input)
-        setOpen(false)
+        try {
+            setLoading(true);
+            const formData = new FormData();
+            formData.append("fullname", input.fullname);
+            formData.append("email", input.email);
+            formData.append("phoneNumber", input.phoneNumber);
+            formData.append("bio", input.bio);
+            formData.append("skills", input.skills);
+            if (input.file) {
+                // field name must match multer.single("logo")
+                formData.append("logo", input.file);
+            }
+
+            const res = await axios.post(
+                `${USER_API_END_POINT}/profile/update`,
+                formData,
+                { withCredentials: true }
+            );
+
+            if (res.data.success) {
+                dispatch(setUser(res.data.user));
+                toast.success(res.data.message || "Profile updated successfully.");
+                setOpen(false);
+            }
+        } catch (error) {
+            console.log(error);
+            const message = error?.response?.data?.message || "Failed to update profile.";
+            toast.error(message);
+        } finally {
+            setLoading(false);
+        }
     }
 
     return (
@@ -104,8 +139,8 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
                         />
                     </div>
 
-                    <Button type="submit" className="w-full">
-                        Update
+                    <Button type="submit" className="w-full" disabled={loading}>
+                        {loading ? "Updating..." : "Update"}
                     </Button>
 
                 </form>

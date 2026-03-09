@@ -1,13 +1,15 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Button } from './ui/button'
 import { Bookmark } from 'lucide-react'
 import { Avatar, AvatarImage } from './ui/avatar'
 import { Badge } from './ui/badge'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 const Job = ({ job }) => {
 
     const navigate = useNavigate();
+    const [isSaved, setIsSaved] = useState(false);
 
     const daysAgoFunction = (mongodbTime) => {
         const createdAt = new Date(mongodbTime);
@@ -16,23 +18,30 @@ const Job = ({ job }) => {
         return Math.floor(timeDifference / (1000 * 24 * 60 * 60));
     }
 
-    const saveJobHandler = () => {
+    useEffect(() => {
+        const savedJobs = JSON.parse(localStorage.getItem("savedJobs")) || [];
+        const exists = savedJobs.some((item) => item._id === job._id);
+        setIsSaved(exists);
+    }, [job._id]);
 
-        let savedJobs = JSON.parse(localStorage.getItem("savedJobs")) || []
+    const toggleSaveJobHandler = () => {
+        let savedJobs = JSON.parse(localStorage.getItem("savedJobs")) || [];
+        const jobIndex = savedJobs.findIndex((item) => item._id === job._id);
 
-        const jobExists = savedJobs.find((item) => item._id === job._id)
-
-        if (jobExists) {
-            alert("Job already saved!")
-            return
+        if (jobIndex !== -1) {
+            // Unsave job
+            savedJobs.splice(jobIndex, 1);
+            localStorage.setItem("savedJobs", JSON.stringify(savedJobs));
+            setIsSaved(false);
+            toast.info("Job removed from Saved Jobs");
+        } else {
+            // Save job
+            savedJobs.push(job);
+            localStorage.setItem("savedJobs", JSON.stringify(savedJobs));
+            setIsSaved(true);
+            toast.success("Job saved for later");
         }
-
-        savedJobs.push(job)
-
-        localStorage.setItem("savedJobs", JSON.stringify(savedJobs))
-
-        alert("Job saved successfully!")
-    }
+    };
 
     return (
         <div className='p-5 rounded-md shadow-xl bg-white border border-gray-100'>
@@ -46,9 +55,9 @@ const Job = ({ job }) => {
                     variant="outline"
                     className="rounded-full"
                     size="icon"
-                    onClick={saveJobHandler}
+                    onClick={toggleSaveJobHandler}
                 >
-                    <Bookmark />
+                    <Bookmark className={isSaved ? "fill-[#7209b7] text-[#7209b7]" : ""} />
                 </Button>
             </div>
 
@@ -93,10 +102,10 @@ const Job = ({ job }) => {
                 </Button>
 
                 <Button
-                    className="bg-[#7209b7]"
-                    onClick={saveJobHandler}
+                    className={`bg-[#7209b7] ${isSaved ? "bg-gray-500" : ""}`}
+                    onClick={toggleSaveJobHandler}
                 >
-                    Save For Later
+                    {isSaved ? "Unsave" : "Save For Later"}
                 </Button>
             </div>
 

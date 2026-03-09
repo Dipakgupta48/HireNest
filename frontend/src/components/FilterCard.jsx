@@ -1,59 +1,110 @@
-import React, { useEffect, useState } from 'react'
-import { RadioGroup, RadioGroupItem } from './ui/radio-group'
+import React from 'react'
 import { Label } from './ui/label'
-import { useDispatch } from 'react-redux'
-import { setSearchedQuery } from '@/redux/jobSlice'
+import { useDispatch, useSelector } from 'react-redux'
+import { setFilters } from '@/redux/jobSlice'
 
-const fitlerData = [
+const filterConfig = [
     {
-        fitlerType: "Location",
-        array: ["Delhi NCR", "Bangalore", "Hyderabad", "Pune", "Mumbai"]
+        id: "location",
+        label: "Location",
+        options: [
+            "Delhi",
+            "Mumbai",
+            "Bangalore",
+            "Hyderabad",
+            "Pune",
+            "Chennai",
+            "Kolkata",
+            "Gurgaon",
+            "Noida",
+            "Ahmedabad",
+            "Remote"
+        ]
     },
     {
-        fitlerType: "Industry",
-        array: ["Frontend Developer", "Backend Developer", "FullStack Developer"]
+        id: "industry",
+        label: "Role",
+        options: [
+            "Frontend Developer",
+            "Backend Developer",
+            "Full Stack Developer",
+            "Data Scientist",
+            "DevOps Engineer",
+            "Mobile Developer",
+            "UI/UX Designer",
+            "QA Engineer",
+            "Product Manager"
+        ]
     },
     {
-        fitlerType: "Salary",
-        array: ["0-40k", "42-1lakh", "1lakh to 5lakh"]
+        id: "salary",
+        label: "Salary Range",
+        options: ["0 - 3 LPA", "3 - 6 LPA", "6 - 10 LPA", "10+ LPA"]
     },
-]
+];
 
 const FilterCard = () => {
-    const [selectedValue, setSelectedValue] = useState('');
     const dispatch = useDispatch();
-    const changeHandler = (value) => {
-        setSelectedValue(value);
-    }
-    useEffect(()=>{
-        dispatch(setSearchedQuery(selectedValue));
-    },[selectedValue]);
+    const filtersFromStore = useSelector(store => store.job?.filters);
+    const filters = filtersFromStore || { location: [], industry: [], salary: [] };
+
+    const handleFilterChange = (key, option) => {
+        const current = Array.isArray(filters[key]) ? filters[key] : [];
+        const exists = current.includes(option);
+        const updated = exists
+            ? current.filter((item) => item !== option)
+            : [...current, option];
+        dispatch(setFilters({ [key]: updated }));
+    };
+
+    const clearAllFilters = () => {
+        dispatch(setFilters({ location: [], industry: [], salary: [] }));
+    };
+
     return (
         <div className='w-full bg-white p-3 rounded-md'>
-            <h1 className='font-bold text-lg'>Filter Jobs</h1>
-            <hr className='mt-3' />
-            <RadioGroup value={selectedValue} onValueChange={changeHandler}>
-                {
-                    fitlerData.map((data, index) => (
-                        <div>
-                            <h1 className='font-bold text-lg'>{data.fitlerType}</h1>
-                            {
-                                data.array.map((item, idx) => {
-                                    const itemId = `id${index}-${idx}`
-                                    return (
-                                        <div className='flex items-center space-x-2 my-2'>
-                                            <RadioGroupItem value={item} id={itemId} />
-                                            <Label htmlFor={itemId}>{item}</Label>
-                                        </div>
-                                    )
-                                })
-                            }
-                        </div>
-                    ))
-                }
-            </RadioGroup>
+            <div className='flex items-center justify-between mb-3'>
+                <h1 className='font-bold text-lg'>Filter Jobs</h1>
+                <button
+                    type="button"
+                    onClick={clearAllFilters}
+                    className='text-xs text-blue-600 underline'
+                >
+                    Clear all
+                </button>
+            </div>
+            <hr className='mb-3' />
+            <div className='space-y-4'>
+                {filterConfig.map((section, sectionIndex) => (
+                    <div key={section.id}>
+                        <h2 className='font-semibold text-sm mb-2'>{section.label}</h2>
+                        {section.options.map((option, optionIndex) => {
+                            const itemId = `${section.id}-${sectionIndex}-${optionIndex}`;
+                            const selectedArray = Array.isArray(filters[section.id]) ? filters[section.id] : [];
+                            const checked = selectedArray.includes(option);
+                            return (
+                                <div key={itemId} className='flex items-center space-x-2 my-1'>
+                                    <input
+                                        id={itemId}
+                                        type="checkbox"
+                                        checked={checked}
+                                        onChange={() => handleFilterChange(section.id, option)}
+                                        className='h-3 w-3 accent-[#6A38C2]'
+                                    />
+                                    <Label
+                                        htmlFor={itemId}
+                                        className={`text-sm ${checked ? 'font-medium text-[#6A38C2]' : ''}`}
+                                    >
+                                        {option}
+                                    </Label>
+                                </div>
+                            );
+                        })}
+                    </div>
+                ))}
+            </div>
         </div>
-    )
-}
+    );
+};
 
 export default FilterCard

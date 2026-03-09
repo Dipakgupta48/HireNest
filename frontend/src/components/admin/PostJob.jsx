@@ -20,7 +20,7 @@ const PostJob = () => {
         salary: "",
         location: "",
         jobType: "",
-        experience: "",
+        experienceLevel: "",
         position: 0,
         companyId: ""
     });
@@ -94,9 +94,9 @@ const PostJob = () => {
                             />
                         </div>
                         <div>
-                            <Label>Salary</Label>
+                            <Label>Salary (LPA)</Label>
                             <Input
-                                type="text"
+                                type="number"
                                 name="salary"
                                 value={input.salary}
                                 onChange={changeEventHandler}
@@ -125,13 +125,23 @@ const PostJob = () => {
                         </div>
                         <div>
                             <Label>Experience Level</Label>
-                            <Input
-                                type="text"
-                                name="experience"
-                                value={input.experience}
-                                onChange={changeEventHandler}
-                                className="focus-visible:ring-offset-0 focus-visible:ring-0 my-1"
-                            />
+                            <Select
+                                onValueChange={(value) =>
+                                    setInput({ ...input, experienceLevel: value })
+                                }
+                            >
+                                <SelectTrigger className="w-full my-1">
+                                    <SelectValue placeholder="Select experience level" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        <SelectItem value="0">Fresher</SelectItem>
+                                        <SelectItem value="1">Junior Level</SelectItem>
+                                        <SelectItem value="2">Mid Level</SelectItem>
+                                        <SelectItem value="3">Senior Level</SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
                         </div>
                         <div>
                             <Label>No of Postion</Label>

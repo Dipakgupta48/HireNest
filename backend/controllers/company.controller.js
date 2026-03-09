@@ -36,6 +36,10 @@ export const registerCompany = async (req, res) => {
 
   } catch (error) {
     console.log(error);
+    return res.status(500).json({
+      message: "Internal server error while registering company.",
+      success: false
+    });
   }
 };
 
@@ -53,6 +57,10 @@ export const getCompany = async (req, res) => {
 
   } catch (error) {
     console.log(error);
+    return res.status(500).json({
+      message: "Internal server error while fetching companies.",
+      success: false
+    });
   }
 };
 
@@ -77,6 +85,10 @@ export const getCompanyById = async (req, res) => {
 
   } catch (error) {
     console.log(error);
+    return res.status(500).json({
+      message: "Internal server error while fetching company.",
+      success: false
+    });
   }
 };
 
@@ -116,5 +128,9 @@ export const updateCompany = async (req, res) => {
 
   } catch (error) {
     console.log(error);
+    return res.status(500).json({
+      message: "Internal server error while updating company.",
+      success: false
+    });
   }
 };

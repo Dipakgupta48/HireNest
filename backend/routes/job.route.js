@@ -1,6 +1,6 @@
 import express from "express";
 import isAuthenticated from "../middlewares/isAuthenticated.js";
-import { postJob, getAllJobs, getJobById, getAdminJobs, updateJob } from "../controllers/job.controller.js";
+import { postJob, getAllJobs, getJobById, getAdminJobs, updateJob, deleteJob } from "../controllers/job.controller.js";
 
 const router = express.Router();
 
@@ -9,6 +9,9 @@ router.post("/post", isAuthenticated, postJob);
 
 // Recruiter updates a job
 router.put("/update/:id", isAuthenticated, updateJob);
+
+// Recruiter deletes a job
+router.delete("/delete/:id", isAuthenticated, deleteJob);
 
 // Students fetch all jobs
 router.get("/get", getAllJobs);

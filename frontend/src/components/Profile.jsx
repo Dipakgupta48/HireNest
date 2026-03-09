@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { Avatar, AvatarImage } from './ui/avatar'
 import { Button } from './ui/button'
 import { Contact, Mail, Pen } from 'lucide-react'
@@ -6,12 +6,19 @@ import { Badge } from './ui/badge'
 import { Label } from './ui/label'
 import AppliedJobTable from './AppliedJobTable'
 import UpdateProfileDialog from './UpdateProfileDialog'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import useGetAppliedJobs from '@/hooks/useGetAppliedJobs'
+import axios from 'axios'
+import { USER_API_END_POINT } from '@/utils/constant'
+import { setUser } from '@/redux/authSlice'
+import { toast } from 'sonner'
 
 const Profile = () => {
     useGetAppliedJobs();
     const [open, setOpen] = useState(false);
+    const [photoUploading, setPhotoUploading] = useState(false);
+    const fileInputRef = useRef(null);
+    const dispatch = useDispatch();
     const { user } = useSelector(store => store.auth);
 
     const isResume = user?.profile?.resume;
@@ -21,12 +28,61 @@ const Profile = () => {
             <div className='max-w-4xl mx-auto bg-white border border-gray-200 rounded-2xl my-5 p-8'>
                 <div className='flex justify-between'>
                     <div className='flex items-center gap-4'>
-                        <Avatar className="h-24 w-24">
-                            <AvatarImage
-                                src={user?.profile?.profilePhoto || "https://www.shutterstock.com/image-vector/circle-line-simple-design-logo-600nw-2174926871.jpg"}
-                                alt="profile"
+                        <div className='relative'>
+                            <Avatar className="h-24 w-24">
+                                <AvatarImage
+                                    src={user?.profile?.profilePhoto || "https://www.shutterstock.com/image-vector/circle-line-simple-design-logo-600nw-2174926871.jpg"}
+                                    alt="profile"
+                                />
+                            </Avatar>
+                            <Button
+                                type="button"
+                                size="sm"
+                                className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-xs px-2 py-1"
+                                variant="secondary"
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={photoUploading}
+                            >
+                                {photoUploading ? "Uploading..." : "Change"}
+                            </Button>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    try {
+                                        setPhotoUploading(true);
+                                        const formData = new FormData();
+                                        formData.append("profilePhoto", file);
+                                        const res = await axios.post(
+                                            `${USER_API_END_POINT}/profile/photo`,
+                                            formData,
+                                            {
+                                                withCredentials: true,
+                                            }
+                                        );
+                                        if (res.data.success) {
+                                            dispatch(setUser(res.data.user));
+                                            toast.success(res.data.message || "Profile photo updated successfully.");
+                                        }
+                                    } catch (error) {
+                                        console.log(error);
+                                        const message =
+                                            error?.response?.data?.message || "Failed to update profile photo.";
+                                        toast.error(message);
+                                    } finally {
+                                        setPhotoUploading(false);
+                                        // reset input so same file can be chosen again if needed
+                                        if (fileInputRef.current) {
+                                            fileInputRef.current.value = "";
+                                        }
+                                    }
+                                }}
                             />
-                        </Avatar>
+                        </div>
                         <div>
                             <h1 className='font-medium text-xl'>{user?.fullname}</h1>
                             <p>{user?.profile?.bio || "No bio added"}</p>
@@ -68,9 +124,9 @@ const Profile = () => {
                     {
                         isResume ? (
                             <a
-                                target='_blank'
                                 href={user?.profile?.resume}
                                 className='text-blue-500 hover:underline cursor-pointer'
+                                download={user?.profile?.resumeOriginalName || "resume.pdf"}
                             >
                                 {user?.profile?.resumeOriginalName}
                             </a>

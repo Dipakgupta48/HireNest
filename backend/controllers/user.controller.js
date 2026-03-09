@@ -141,7 +141,10 @@ export const updateProfile = async (req, res) => {
 
         if (file) {
             const fileUri = getDataUri(file);
-            cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+            // Upload resume as a raw file (PDF, DOCX, etc.) so it can be downloaded/viewed correctly
+            cloudResponse = await cloudinary.uploader.upload(fileUri.content, {
+                resource_type: "raw"
+            });
         }
 
         let skillsArray;
@@ -165,9 +168,16 @@ export const updateProfile = async (req, res) => {
         if(bio) user.profile.bio = bio
         if(skills) user.profile.skills = skillsArray
 
-        if(cloudResponse){
-            user.profile.resume = cloudResponse.secure_url
-            user.profile.resumeOriginalName = file.originalname
+        if (cloudResponse) {
+            // Build a URL that forces file download with the correct name & extension
+            const resumeUrl = cloudinary.url(cloudResponse.public_id, {
+                resource_type: "raw",
+                flags: "attachment",
+                filename: file.originalname
+            });
+
+            user.profile.resume = resumeUrl;
+            user.profile.resumeOriginalName = file.originalname;
         }
 
         await user.save();
@@ -189,5 +199,59 @@ export const updateProfile = async (req, res) => {
 
     } catch (error) {
         console.log(error);
+        return res.status(500).json({
+            message: "Something went wrong while updating profile.",
+            success: false
+        });
+    }
+}
+
+export const updateProfilePhoto = async (req, res) => {
+    try {
+        const file = req.file;
+
+        if (!file) {
+            return res.status(400).json({
+                message: "Profile photo file is required.",
+                success: false
+            });
+        }
+
+        const fileUri = getDataUri(file);
+        const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+
+        const userId = req.id;
+        let user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(400).json({
+                message: "User not found.",
+                success: false
+            });
+        }
+
+        user.profile.profilePhoto = cloudResponse.secure_url;
+        await user.save();
+
+        user = {
+            _id: user._id,
+            fullname: user.fullname,
+            email: user.email,
+            phoneNumber: user.phoneNumber,
+            role: user.role,
+            profile: user.profile
+        };
+
+        return res.status(200).json({
+            message: "Profile photo updated successfully.",
+            user,
+            success: true
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            message: "Something went wrong while updating profile photo.",
+            success: false
+        });
     }
 }

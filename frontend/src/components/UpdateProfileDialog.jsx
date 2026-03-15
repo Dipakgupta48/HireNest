@@ -131,13 +131,15 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
                         />
                     </div>
 
-                    <div>
-                        <Label>Resume</Label>
-                        <Input
-                            type="file"
-                            onChange={fileChangeHandler}
-                        />
-                    </div>
+                    {user?.role !== 'recruiter' && (
+                        <div>
+                            <Label>Resume</Label>
+                            <Input
+                                type="file"
+                                onChange={fileChangeHandler}
+                            />
+                        </div>
+                    )}
 
                     <Button type="submit" className="w-full" disabled={loading}>
                         {loading ? "Updating..." : "Update"}

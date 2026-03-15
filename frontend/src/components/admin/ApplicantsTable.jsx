@@ -4,7 +4,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { MoreHorizontal } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { toast } from 'sonner';
-import { APPLICATION_API_END_POINT } from '@/utils/constant';
+import { APPLICATION_API_END_POINT, USER_API_END_POINT } from '@/utils/constant';
 import axios from 'axios';
 
 const shortlistingStatus = ["Accepted", "Rejected"];
@@ -52,8 +52,9 @@ const ApplicantsTable = () => {
                                         item.applicant?.profile?.resume ? (
                                             <a
                                                 className="text-blue-600 cursor-pointer"
-                                                href={item?.applicant?.profile?.resume}
-                                                download={item?.applicant?.profile?.resumeOriginalName || "resume.pdf"}
+                                                href={`${USER_API_END_POINT}/profile/resume/${item?.applicant?._id}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
                                             >
                                                 {item?.applicant?.profile?.resumeOriginalName}
                                             </a>

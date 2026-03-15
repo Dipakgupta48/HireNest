@@ -1,3 +1,4 @@
+import { Readable } from "stream";
 import { User } from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -205,6 +206,40 @@ export const updateProfile = async (req, res) => {
         });
     }
 }
+
+export const getResume = async (req, res) => {
+    try {
+        const targetUserId = req.params.userId || req.id;
+        const isOwnResume = !req.params.userId;
+
+        if (!isOwnResume) {
+            const currentUser = await User.findById(req.id).select("role");
+            if (currentUser?.role !== "recruiter") {
+                return res.status(403).json({ message: "Not allowed to download this resume.", success: false });
+            }
+        }
+
+        const user = await User.findById(targetUserId).select("profile.resume profile.resumeOriginalName");
+        if (!user?.profile?.resume) {
+            return res.status(404).json({ message: "Resume not found.", success: false });
+        }
+
+        const filename = user.profile.resumeOriginalName || "resume.pdf";
+        const fetchRes = await fetch(user.profile.resume, { redirect: "follow" });
+        if (!fetchRes.ok) {
+            return res.status(502).json({ message: "Failed to fetch resume.", success: false });
+        }
+        const safeName = filename.replace(/"/g, '\\"');
+        res.setHeader("Content-Disposition", `attachment; filename="${safeName}"`);
+        const contentType = fetchRes.headers.get("content-type");
+        if (contentType) res.setHeader("Content-Type", contentType);
+        const nodeStream = Readable.fromWeb(fetchRes.body);
+        nodeStream.pipe(res);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Something went wrong.", success: false });
+    }
+};
 
 export const updateProfilePhoto = async (req, res) => {
     try {

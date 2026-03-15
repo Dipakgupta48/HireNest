@@ -22,6 +22,7 @@ const Profile = () => {
     const { user } = useSelector(store => store.auth);
 
     const isResume = user?.profile?.resume;
+    const isRecruiter = user?.role === 'recruiter';
 
     return (
         <div>
@@ -119,29 +120,33 @@ const Profile = () => {
                     </div>
                 </div>
 
-                <div className='grid w-full max-w-sm items-center gap-1.5'>
-                    <Label className="text-md font-bold">Resume</Label>
-                    {
+                {!isRecruiter && (
+                    <div className='grid w-full max-w-sm items-center gap-1.5'>
+                        <Label className="text-md font-bold">Resume</Label>
+                        {
                         isResume ? (
                             <a
-                                href={user?.profile?.resume}
+                                href={`${USER_API_END_POINT}/profile/resume`}
                                 className='text-blue-500 hover:underline cursor-pointer'
-                                download={user?.profile?.resumeOriginalName || "resume.pdf"}
+                                target="_blank"
+                                rel="noopener noreferrer"
                             >
                                 {user?.profile?.resumeOriginalName}
                             </a>
                         ) : (
-                            <span>NA</span>
-                        )
-                    }
+                                <span>NA</span>
+                            )
+                        }
+                    </div>
+                )}
+            </div>
+
+            {!isRecruiter && (
+                <div className='max-w-4xl mx-auto bg-white rounded-2xl p-5'>
+                    <h1 className='font-bold text-lg my-5'>Applied Jobs</h1>
+                    <AppliedJobTable />
                 </div>
-            </div>
-
-            <div className='max-w-4xl mx-auto bg-white rounded-2xl p-5'>
-                <h1 className='font-bold text-lg my-5'>Applied Jobs</h1>
-
-                <AppliedJobTable />
-            </div>
+            )}
 
             <UpdateProfileDialog open={open} setOpen={setOpen} />
         </div>

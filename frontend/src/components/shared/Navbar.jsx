@@ -113,13 +113,11 @@ const Navbar = () => {
                   </div>
 
                   <div className='flex flex-col gap-2'>
-                    {user.role === 'student' && (
-                      <Link to='/profile'>
-                        <Button variant='ghost' className='w-full flex gap-2 justify-start'>
-                          <User2 size={18} /> View Profile
-                        </Button>
-                      </Link>
-                    )}
+                    <Link to='/profile'>
+                      <Button variant='ghost' className='w-full flex gap-2 justify-start'>
+                        <User2 size={18} /> View Profile
+                      </Button>
+                    </Link>
 
                     {/* Switch account dropdown */}
                     {savedUsers.length > 1 && (
